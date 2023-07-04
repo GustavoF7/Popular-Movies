@@ -3,28 +3,7 @@ import { apiKey } from './script.js';
 import { InserirFilmesNaTela } from './main.js';
 const filtroAtivo = document.getElementById('cabecalho__checkbox');
 
-
-filtroAtivo.addEventListener('change', filtrarFilmesFavoritos);
-
-function filtrarFilmesFavoritos() {
-    const elementos = document.querySelectorAll('.cards');
-    elementos.forEach(elemento => {
-        if (filtroAtivo.checked) {
-            const movieId = Number(elemento.dataset.movieId);
-
-            if (!listaDeFavoritos.includes(movieId)) {
-                elemento.style.display = "none";
-            }
-            if (listaDeFavoritos.length === 0) {
-                document.querySelector('.card__lista-vazia').style.display = 'flex';
-            }
-        } else {
-            elemento.style.display = "flex";
-            document.querySelector('.card__lista-vazia').style.display = 'none';
-        }
-
-    });
-}
+filtroAtivo.addEventListener('change', getFilmesFavoritos);
 
 const inputPesquisa = document.querySelector('.cabecalho__pesquisa-input');
 const lupa = document.querySelector('.cabecalho__pesquisa-lupa');
@@ -61,11 +40,36 @@ function pesquisarFilmes() {
     }
 }
 
-function obterDetalhesFilmes(ids) {
-    const urls = ids.map(id => `https://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}&language=pt-BR`);
-    const promises = urls.map(url => fetch(url).then(response => response.json()));
-    return Promise.all(promises);
+async function getFilmesFavoritos() {
+    if (listaDeFavoritos.length === 0) {
+        document.getElementById('filmes').innerHTML = '';
+        document.querySelector('.card__lista-vazia').style.display = 'flex';
+    }
+
+    if (filtroAtivo.checked) {
+        try {
+            const filmes = [];
+            for (const movieId of listaDeFavoritos) {
+                const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${apiKey}&language=pt-BR`);
+                const movie = await response.json();
+                filmes.push(movie);
+            }
+            InserirFilmesNaTela(filmes);
+            document.querySelectorAll('.cards').forEach(elemento => {
+                elemento.querySelector('.cards__parte2-checkbox').checked = true;
+            });
+        } catch (error) {
+            console.error('Ocorreu um erro ao obter detalhes dos filmes:', error);
+        }
+    } else {
+        document.querySelector('.card__lista-vazia').style.display = 'none';
+        try {
+            const response = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=pt-BR`);
+            const data = await response.json();
+            const movies = data.results.slice(0, 10);
+            InserirFilmesNaTela(movies);
+        } catch (error) {
+            console.error('Ocorreu um erro ao obter os filmes populares:', error);
+        }
+    }
 }
-
-
-

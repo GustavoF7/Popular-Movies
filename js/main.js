@@ -53,10 +53,15 @@ function InserirFilmesNaTela(filmes) {
     const favoriteCheckbox = document.createElement('input');
     favoriteCheckbox.type = 'checkbox';
     favoriteCheckbox.className = 'cards__parte2-checkbox';
+    if (listaDeFavoritos.includes(movieId)) {
+      favoriteCheckbox.checked = true
+    }
 
     favoriteCheckbox.addEventListener('change', () => {
       if (favoriteCheckbox.checked) {
-        listaDeFavoritos.push(movieId);
+        if (!listaDeFavoritos.includes(movie)){
+          listaDeFavoritos.push(movieId);
+        }
       } else {
         const index = listaDeFavoritos.indexOf(movieId);
         if (index !== -1) {
